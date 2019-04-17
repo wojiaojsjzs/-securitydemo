@@ -1,5 +1,9 @@
 package com.jzs.securitydemo.config;
 
+import com.jzs.securitydemo.Util.PasswordEncodeUtil;
+import org.springframework.beans.factory.annotation.Autowire;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -15,6 +19,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 //权限分组 Admin or Other
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Autowired
+    private MyUserService myUserService;
+
+
     /**
      * 基于内存的验证
      * @param auth
@@ -22,8 +31,26 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
      */
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.inMemoryAuthentication().passwordEncoder(new BCryptPasswordEncoder()).withUser("admin").password(new BCryptPasswordEncoder().encode("123456")).roles("ADMIN");
+        /*auth.inMemoryAuthentication().passwordEncoder(new BCryptPasswordEncoder()).withUser("admin").password(new BCryptPasswordEncoder().encode("123456")).roles("ADMIN");
         auth.inMemoryAuthentication().passwordEncoder(new BCryptPasswordEncoder()).withUser("admin1").password(new BCryptPasswordEncoder().encode("123456")).roles("OTHER");
+        */
+        /**
+         * Auth指定使用的userService 自己的验证器
+         */
+        auth.userDetailsService(myUserService).passwordEncoder(new PasswordEncodeUtil());
+        /**
+         * 默认数据库验证
+         *
+         *
+         *
+         *
+         * */
+        auth.jdbcAuthentication()
+                //
+                .usersByUsernameQuery("")
+                //权限
+                .authoritiesByUsernameQuery("");
+
     }
 
     /**
@@ -54,4 +81,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     public void configure(WebSecurity web) throws Exception {
         web.ignoring().mvcMatchers("/js/**","/css/**","/images/**");
     }
+
+
+
 }
